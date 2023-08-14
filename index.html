@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	
+	
+	<title>CEB</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+<!--===============================================================================================-->	
+	<link rel="icon" type="image/png" href="images/icons/favicon.ico"/>
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="fonts/Linearicons-Free-v1.0.0/icon-font.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/animate/animate.css">
+<!--===============================================================================================-->	
+	<link rel="stylesheet" type="text/css" href="vendor/css-hamburgers/hamburgers.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/animsition/css/animsition.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/select2/select2.min.css">
+<!--===============================================================================================-->	
+	<link rel="stylesheet" type="text/css" href="vendor/daterangepicker/daterangepicker.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="css/util.css">
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+<!--===============================================================================================-->
+</head>
+<body>
+	
+	<div class="limiter">
+		<div class="container-login100">
+			<div class="wrap-login100">
+				<div class="login100-form-title" style="background-image: url(images/CEB1.jpg);">
+					<span class="login100-form-title-1">
+						Display customer details
+					</span>
+				</div>
+
+				<form class="login100-form validate-form">
+					<div class="wrap-input100 validate-input m-b-26" data-validate="Username is required">
+						<span class="label-input100">Account Number</span>
+						<input class="input100" type="number" id="accountNumber" name="accountNumber" placeholder="Add account number" required>
+						<span class="focus-input100"></span>
+					</div>
+
+					<div class="container-login100-form-btn">
+						<button class="login100-form-btn" type="submit" name="submit" id="submit">
+							Submit
+						</button>
+					</div>
+
+					<div id="customerDetails" class="hidden pt-4">
+					</div>
+
+					<div class="container-login100-form-btn pt-4">
+						<button class="login100-form-btn" name="meterReaderLogin" id="meterReaderLogin">
+							Meter Reader Login
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	
+<!--===============================================================================================-->
+	<script src="vendor/jquery/jquery-3.2.1.min.js"></script>
+<!--===============================================================================================-->
+	<script src="vendor/animsition/js/animsition.min.js"></script>
+<!--===============================================================================================-->
+	<script src="vendor/bootstrap/js/popper.js"></script>
+	<script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+<!--===============================================================================================-->
+	<script src="vendor/select2/select2.min.js"></script>
+<!--===============================================================================================-->
+	<script src="vendor/daterangepicker/moment.min.js"></script>
+	<script src="vendor/daterangepicker/daterangepicker.js"></script>
+<!--===============================================================================================-->
+	<script src="vendor/countdowntime/countdowntime.js"></script>
+<!--===============================================================================================-->
+	<script src="js/main.js"></script>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
+
+
+	<script type="text/javascript">
+		$(document).ready(function() {
+
+			document.getElementById("meterReaderLogin").addEventListener("click", function() {
+				window.location.href = "http://127.0.0.1:5500/test-project-frontend/meterReaderLogin.html";
+			});
+			
+			$("#submit").click(function(event) {
+				event.preventDefault();
+				var account_number = $("#accountNumber").val();
+				if (account_number  === "" ) {
+					Swal.fire({
+						icon: 'error',
+						title: 'Oops...',
+						text: 'Account number required',
+						timer: 1500,
+					})
+				} else {
+					$.ajax({
+					url: "http://localhost/api/customer/getCustomerDetails",
+					type: "post",
+					data: {
+						account_number
+					},
+					headers: {
+						'Accept': 'application/json'
+					},
+					success: function(response) {
+						var loginStatus = response['status'];
+						if (loginStatus == 'failed') {
+							Swal.fire({
+								icon: 'error',
+								title: 'Oops...',
+								text: `${response['message']}!`,
+								showConfirmButton: false,
+								timer: 1500,
+							})
+						} else {
+							// Display the details in the customerDetails div
+							let customerDetails = `
+								<h2>Customer Details</h2>
+								<div class = pt-2 customer-details>
+									<p><b>Last Reading Date : </b>${response.data.last_reading_date}</p>
+									<p><b>Previous Reading Date : </b>${response.data.previous_reading_date}</p>
+                                	<p><b>Last Reading : </b>${response.data.last_reading} Kwh</p>
+                                	<p><b>Previous Reading : </b>${response.data.previous_reading} Kwh</p>
+                                	<p><b>Fixed Charge : </b>${response.data.fixed_charge} LKR</p>
+                                	<p><b>First Range Amount : </b>${response.data.first_range_amount} LKR</p>
+                                	<p><b>Second Range Amount : </b>${response.data.second_range_amount} LKR</p>
+                                	<p><b>Third Range Amount : </b>${response.data.third_range_amount} LKR</p>
+                                	<p><b>Total Amount : </b>${response.data.total_amount} LKR</p>
+								</div>                                
+                            `;
+							$("#customerDetails").html(customerDetails);
+                            $("#customerDetails").removeClass("hidden");
+						}
+					},
+					error: function(jqXHR, textStatus, errorThrown) {
+						console.log(textStatus, errorThrown);
+					}
+				});
+				}	
+			});
+		});
+	</script>
+</body>
+</html>
